@@ -16,13 +16,20 @@ export class News extends Component {
     category: PropTypes.string,
   };
 
-  constructor() {
-    super();
+  capitalizeFirstLetter = (string) => {
+    return string.charAt(0).toUpperCase() + string.slice(1);
+  };
+
+  constructor(props) {
+    super(props);
     this.state = {
       articles: [],
       loading: false,
       page: 1,
     };
+    document.title = `NewsSpin - ${this.capitalizeFirstLetter(
+      this.props.category
+    )}`;
   }
 
   async updateNews() {
@@ -98,7 +105,7 @@ export class News extends Component {
           style={{ margin: "35px 0px", color: "red" }}
         >
           <b>
-            <u>NewsSpin - Top Headlines</u>
+            <u>NewsSpin - Top Headlines : {this.capitalizeFirstLetter(this.props.category)}</u>
           </b>
         </h2>
         {this.state.loading && <Spinner />}
