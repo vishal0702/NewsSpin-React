@@ -2,6 +2,7 @@ import React, { Component } from "react";
 import NewsItem from "./NewsItem";
 import Spinner from "./Spinner";
 import PropTypes from "prop-types";
+import InfiniteScroll from "react-infinite-scroll-component";
 
 export class News extends Component {
   static defaultProps = {
@@ -24,8 +25,9 @@ export class News extends Component {
     super(props);
     this.state = {
       articles: [],
-      loading: false,
+      loading: true,
       page: 1,
+      totalResults: 0,
     };
     document.title = `NewsSpin - ${this.capitalizeFirstLetter(
       this.props.category
@@ -33,7 +35,7 @@ export class News extends Component {
   }
 
   async updateNews() {
-    let url = `https://newsapi.org/v2/top-headlines?country=${this.props.country}&category=${this.props.category}&apiKey=a730750c1e8e4023b09929485964ee1a&page=${this.state.page}&pageSize=${this.props.pageSize}`;
+    const url = `https://newsapi.org/v2/top-headlines?country=${this.props.country}&category=${this.props.category}&apiKey=a730750c1e8e4023b09929485964ee1a&page=${this.state.page}&pageSize=${this.props.pageSize}`;
     this.setState({ loading: true });
     let data = await fetch(url);
     let parsedData = await data.json();
@@ -97,41 +99,66 @@ export class News extends Component {
     this.updateNews();
   };
 
+  fetchMoreData = async () => {
+    // this.setState({ page: this.state.page + 1 });
+    // this.state.page += this.state.page;
+    const url = `https://newsapi.org/v2/top-headlines?country=${this.props.country}&category=${this.props.category}&apiKey=a730750c1e8e4023b09929485964ee1a&page=${this.state.page+1}&pageSize=${this.props.pageSize}`;
+    let data = await fetch(url);
+    let parsedData = await data.json();
+    this.setState({
+      articles: this.state.articles.concat(parsedData.articles),
+      totalResults: parsedData.totalResults,
+      page: this.state.page+1
+    });
+  };
+
   render() {
     return (
-      <div className="container my-3">
+      <>
         <h2
           className="text-center"
           style={{ margin: "35px 0px", color: "red" }}
         >
           <b>
-            <u>NewsSpin - Top Headlines : {this.capitalizeFirstLetter(this.props.category)}</u>
+            <u>
+              NewsSpin - Top Headlines :{" "}
+              {this.capitalizeFirstLetter(this.props.category)}
+            </u>
           </b>
         </h2>
         {this.state.loading && <Spinner />}
-        <div className="row">
-          {!this.state.loading &&
-            this.state.articles.map((element) => {
-              return (
-                <div className="col-md-4" key={element.url}>
-                  <NewsItem
-                    title={element.title ? element.title.slice(0, 45) : ""}
-                    description={
-                      element.description
-                        ? element.description.slice(0, 88)
-                        : ""
-                    }
-                    imageUrl={element.urlToImage}
-                    newsUrl={element.url}
-                    author={element.author ? element.author : "Unknown"}
-                    date={element.publishedAt}
-                    source={element.source.name}
-                  />
-                </div>
-              );
-            })}
-        </div>
-        <div className="container d-flex justify-content-between">
+        <InfiniteScroll
+          dataLength={this.state.articles.length}
+          next={this.fetchMoreData}
+          hasMore={this.state.articles.length !== this.state.totalResults}
+          loader={<Spinner />}
+        >
+          <div className="container">
+            <div className="row">
+              {/* {!this.state.loading && */}
+              {this.state.articles.map((element) => {
+                return (
+                  <div className="col-md-4" key={element.url}>
+                    <NewsItem
+                      title={element.title ? element.title.slice(0, 45) : ""}
+                      description={
+                        element.description
+                          ? element.description.slice(0, 88)
+                          : ""
+                      }
+                      imageUrl={element.urlToImage}
+                      newsUrl={element.url}
+                      author={element.author ? element.author : "Unknown"}
+                      date={element.publishedAt}
+                      source={element.source.name}
+                    />
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </InfiniteScroll>
+        {/* <div className="container d-flex justify-content-between">
           <button
             disabled={this.state.page <= 1}
             type="button"
@@ -151,8 +178,8 @@ export class News extends Component {
           >
             Next &raquo;
           </button>
-        </div>
-      </div>
+        </div> */}
+      </>
     );
   }
 }
