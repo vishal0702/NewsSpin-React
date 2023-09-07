@@ -152,7 +152,7 @@ export class News extends Component {
                       }
                       imageUrl={element.urlToImage}
                       newsUrl={element.url}
-                      author={element.author ? element.author : "Unknown"}
+                      author={element.author ? element.author : element.source.name}
                       date={element.publishedAt}
                       source={element.source.name}
                     />
